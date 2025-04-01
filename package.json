@@ -1,0 +1,23 @@
+{
+  "name": "woc",
+  "version": "1.0.0",
+  "description": "An interactive 3D virtual world for cycling enthusiasts where users can: - Create and customize their avatar - Explore a virtual cycling world - Purchase bicycles, clothing, and accessories - Interact with other cyclists - Customize their virtual cycling experience",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/caaguirreec/WoC.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/caaguirreec/WoC/issues"
+  },
+  "homepage": "https://github.com/caaguirreec/WoC#readme"
+}
