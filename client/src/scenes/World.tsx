@@ -7,6 +7,7 @@ import { Marketplace } from '../components/Marketplace'
 import { Trees } from '../components/Trees'
 import { Buildings } from '../components/Buildings'
 import { CyclingPath } from '../components/CyclingPath'
+import { Mountains } from '../components/Mountains'
 
 export const World = () => {
   return (
@@ -21,17 +22,20 @@ export const World = () => {
         />
         <Environment preset="sunset" />
         
+        {/* Mountains */}
+        <Mountains position={[0, 0, 0]} />
+        
         {/* Ground */}
         <Ground />
         
         {/* Trees */}
-        <Trees />
+        <Trees position={[2, 1, 1]} />
         
         {/* Buildings */}
         <Buildings />
         
         {/* Cycling Path */}
-        <CyclingPath />
+        {/*<CyclingPath />*/}
         
         {/* Avatar */}
         <Avatar position={[0, 0, 0]} />

@@ -1,26 +1,39 @@
-import { useRef } from 'react'
+import { useRef, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Mesh } from 'three'
-import { useStore } from '../utils/store'
+import { Mesh, Group } from 'three'
+import { useMarketplaceStore } from '../utils/marketplaceStore'
+import { CollisionSystem } from '../utils/collision'
 
 interface MarketplaceProps {
   position: [number, number, number]
 }
 
 export const Marketplace = ({ position }: MarketplaceProps) => {
-  const meshRef = useRef<Mesh>(null)
-  const { addToInventory } = useStore()
+  const groupRef = useRef<Group>(null)
+  const { toggleMarketplace } = useMarketplaceStore()
+  const collisionSystem = CollisionSystem.getInstance()
+
+  useEffect(() => {
+    if (groupRef.current) {
+      collisionSystem.addCollidableObject('marketplace', groupRef.current)
+    }
+
+    return () => {
+      collisionSystem.removeCollidableObject('marketplace')
+    }
+  }, [])
 
   useFrame((state, delta) => {
-    if (meshRef.current) {
-      // Add subtle animations or effects here if needed
+    if (groupRef.current) {
+      // Update collision bounds
+      collisionSystem.updateObjectBounds('marketplace', groupRef.current)
     }
   })
 
   return (
-    <group position={position}>
+    <group ref={groupRef} position={position}>
       {/* Building */}
-      <mesh ref={meshRef} castShadow receiveShadow>
+      <mesh castShadow receiveShadow>
         <boxGeometry args={[3, 2, 3]} />
         <meshStandardMaterial 
           color="#8b4513"
@@ -40,7 +53,15 @@ export const Marketplace = ({ position }: MarketplaceProps) => {
       </mesh>
 
       {/* Door */}
-      <mesh position={[0, -0.5, 1.5]} castShadow receiveShadow>
+      <mesh 
+        position={[0, -0.5, 1.5]} 
+        castShadow 
+        receiveShadow
+        onClick={(e) => {
+          e.stopPropagation()
+          toggleMarketplace()
+        }}
+      >
         <boxGeometry args={[0.8, 1.5, 0.1]} />
         <meshStandardMaterial 
           color="#4a4a4a"

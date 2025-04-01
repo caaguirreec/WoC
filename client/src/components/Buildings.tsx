@@ -1,29 +1,18 @@
-import { useRef, useState } from 'react'
-import { useFrame, useThree } from '@react-three/fiber'
-import { Mesh, Group, Vector3 } from 'three'
-import { InfoPanel } from './InfoPanel'
+import { useRef } from 'react'
+import { useFrame } from '@react-three/fiber'
+import { Mesh, Group } from 'three'
 
 interface BuildingProps {
   position: [number, number, number]
   scale?: [number, number, number]
   color?: string
-  onSelect: (position: Vector3) => void
 }
 
-const Building = ({ position, scale = [1, 1, 1], color = '#8b4513', onSelect }: BuildingProps) => {
-  const meshRef = useRef<Mesh>(null)
-
-  const handleClick = (event: any) => {
-    event.stopPropagation()
-    if (meshRef.current) {
-      onSelect(meshRef.current.position)
-    }
-  }
-
+const Building = ({ position, scale = [1, 1, 1], color = '#8b4513' }: BuildingProps) => {
   return (
     <group position={position} scale={scale}>
       {/* Main building */}
-      <mesh ref={meshRef} castShadow receiveShadow onClick={handleClick}>
+      <mesh castShadow receiveShadow>
         <boxGeometry args={[2, 3, 2]} />
         <meshStandardMaterial 
           color={color}
@@ -33,7 +22,7 @@ const Building = ({ position, scale = [1, 1, 1], color = '#8b4513', onSelect }: 
       </mesh>
 
       {/* Windows */}
-      <mesh position={[0, 0, 1]} castShadow receiveShadow onClick={handleClick}>
+      <mesh position={[0, 0, 1]} castShadow receiveShadow>
         <boxGeometry args={[1.8, 2.8, 0.1]} />
         <meshStandardMaterial 
           color="#87ceeb"
@@ -48,17 +37,6 @@ const Building = ({ position, scale = [1, 1, 1], color = '#8b4513', onSelect }: 
 }
 
 export const Buildings = () => {
-  const [selectedBuilding, setSelectedBuilding] = useState<{ position: Vector3; screenPosition: { x: number; y: number } } | null>(null)
-  const { camera } = useThree()
-
-  const handleBuildingSelect = (position: Vector3) => {
-    const vector = position.clone()
-    vector.project(camera)
-    const x = (vector.x * 0.5 + 0.5) * window.innerWidth
-    const y = (-vector.y * 0.5 + 0.5) * window.innerHeight
-    setSelectedBuilding({ position, screenPosition: { x, y } })
-  }
-
   const buildingsPositions: [number, number, number][] = [
     [-15, 0, -15],
     [15, 0, -15],
@@ -69,26 +47,15 @@ export const Buildings = () => {
   const buildingColors = ['#8b4513', '#a0522d', '#8b4513', '#a0522d']
 
   return (
-    <>
-      <group>
-        {buildingsPositions.map((position, index) => (
-          <Building 
-            key={index} 
-            position={position}
-            scale={[1 + Math.random() * 0.5, 1 + Math.random() * 0.5, 1 + Math.random() * 0.5]}
-            color={buildingColors[index]}
-            onSelect={handleBuildingSelect}
-          />
-        ))}
-      </group>
-      {selectedBuilding && (
-        <InfoPanel
-          title="Building"
-          description={`A building at position (${selectedBuilding.position.x.toFixed(1)}, ${selectedBuilding.position.y.toFixed(1)}, ${selectedBuilding.position.z.toFixed(1)})`}
-          position={selectedBuilding.screenPosition}
-          onClose={() => setSelectedBuilding(null)}
+    <group>
+      {buildingsPositions.map((position, index) => (
+        <Building 
+          key={index} 
+          position={position}
+          scale={[1 + Math.random() * 0.5, 1 + Math.random() * 0.5, 1 + Math.random() * 0.5]}
+          color={buildingColors[index]}
         />
-      )}
-    </>
+      ))}
+    </group>
   )
 } 

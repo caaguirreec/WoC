@@ -1,42 +1,64 @@
-import { useRef, useState } from 'react'
-import { useFrame, useThree } from '@react-three/fiber'
-import { Mesh, Group, Vector3 } from 'three'
-import { InfoPanel } from './InfoPanel'
+import { useRef, useEffect } from 'react'
+import { useFrame } from '@react-three/fiber'
+import { Mesh, Group, Box3 } from 'three'
+import { CollisionSystem } from '../utils/collision'
 
-interface TreeProps {
+interface TreesProps {
   position: [number, number, number]
-  scale?: [number, number, number]
-  onSelect: (position: Vector3) => void
 }
 
-const Tree = ({ position, scale = [1, 1, 1], onSelect }: TreeProps) => {
-  const meshRef = useRef<Mesh>(null)
+const createTree = (position: [number, number, number], size: number = 1, treeId: string) => {
+  const groupRef = useRef<Group>(null)
+  const collisionSystem = CollisionSystem.getInstance()
 
-  const handleClick = (event: any) => {
-    event.stopPropagation()
-    if (meshRef.current) {
-      onSelect(meshRef.current.position)
+  useEffect(() => {
+    if (groupRef.current) {
+      // Create a custom bounding box for each tree
+      const box = new Box3().setFromObject(groupRef.current)
+      box.min.y = 0 // Only check collisions from ground level
+      box.max.y = 1.5 // Limit collision height
+      box.min.x -= 0.5 // Add some padding
+      box.max.x += 0.5
+      box.min.z -= 0.5
+      box.max.z += 0.5
+      collisionSystem.addCollidableObject(treeId, groupRef.current)
     }
-  }
+
+    return () => {
+      collisionSystem.removeCollidableObject(treeId)
+    }
+  }, [])
+
+  useFrame((state, delta) => {
+    if (groupRef.current) {
+      const box = new Box3().setFromObject(groupRef.current)
+      box.min.y = 0
+      box.max.y = 1.5
+      box.min.x -= 0.5
+      box.max.x += 0.5
+      box.min.z -= 0.5
+      box.max.z += 0.5
+      collisionSystem.updateObjectBounds(treeId, groupRef.current)
+    }
+  })
 
   return (
-    <group position={position} scale={scale}>
+    <group ref={groupRef} position={position}>
       {/* Trunk */}
-      <mesh ref={meshRef} castShadow receiveShadow onClick={handleClick}>
-        <cylinderGeometry args={[0.2, 0.2, 2, 8]} />
+      <mesh castShadow receiveShadow>
+        <cylinderGeometry args={[0.2 * size, 0.3 * size, 2 * size, 8]} />
         <meshStandardMaterial 
           color="#4a2f1c"
-          roughness={0.9}
-          metalness={0.1}
+          roughness={0.8}
+          metalness={0.2}
         />
       </mesh>
-
-      {/* Leaves */}
-      <mesh position={[0, 1.5, 0]} castShadow receiveShadow onClick={handleClick}>
-        <coneGeometry args={[1, 2, 8]} />
+      {/* Crown */}
+      <mesh position={[0, 1.5 * size, 0]} castShadow receiveShadow>
+        <coneGeometry args={[1 * size, 2 * size, 8]} />
         <meshStandardMaterial 
           color="#2d5a27"
-          roughness={0.8}
+          roughness={0.7}
           metalness={0.2}
         />
       </mesh>
@@ -44,47 +66,33 @@ const Tree = ({ position, scale = [1, 1, 1], onSelect }: TreeProps) => {
   )
 }
 
-export const Trees = () => {
-  const [selectedTree, setSelectedTree] = useState<{ position: Vector3; screenPosition: { x: number; y: number } } | null>(null)
-  const { camera } = useThree()
-
-  const handleTreeSelect = (position: Vector3) => {
-    const vector = position.clone()
-    vector.project(camera)
-    const x = (vector.x * 0.5 + 0.5) * window.innerWidth
-    const y = (-vector.y * 0.5 + 0.5) * window.innerHeight
-    setSelectedTree({ position, screenPosition: { x, y } })
-  }
-
-  const treesPositions: [number, number, number][] = [
-    [-10, 0, -10],
-    [15, 0, -8],
-    [-8, 0, 12],
-    [12, 0, 15],
-    [-15, 0, 5],
-    [8, 0, -15],
+export const Trees = ({ position }: TreesProps) => {
+  // Create tree positions in a more natural distribution
+  const treePositions: [number, number, number][] = [
+    // Small trees
+    [-15, 0, -15], [-12, 0, -18], [-8, 0, -12], [-5, 0, -15],
+    [5, 0, -18], [8, 0, -12], [12, 0, -15], [15, 0, -18],
+    
+    // Medium trees
+    [-18, 0, -8], [-14, 0, -5], [-10, 0, -8], [-6, 0, -5],
+    [6, 0, -8], [10, 0, -5], [14, 0, -8], [18, 0, -5],
+    
+    // Large trees
+    [-16, 0, 0], [-12, 0, 2], [-8, 0, -2], [-4, 0, 0],
+    [4, 0, 2], [8, 0, -2], [12, 0, 0], [16, 0, 2],
+    
+    // Random clusters
+    [-13, 0, 5], [-9, 0, 8], [-5, 0, 5], [-1, 0, 8],
+    [1, 0, 5], [5, 0, 8], [9, 0, 5], [13, 0, 8],
   ]
 
   return (
-    <>
-      <group>
-        {treesPositions.map((position, index) => (
-          <Tree 
-            key={index} 
-            position={position}
-            scale={[0.8 + Math.random() * 0.4, 0.8 + Math.random() * 0.4, 0.8 + Math.random() * 0.4]}
-            onSelect={handleTreeSelect}
-          />
-        ))}
-      </group>
-      {selectedTree && (
-        <InfoPanel
-          title="Tree"
-          description={`A beautiful tree at position (${selectedTree.position.x.toFixed(1)}, ${selectedTree.position.y.toFixed(1)}, ${selectedTree.position.z.toFixed(1)})`}
-          position={selectedTree.screenPosition}
-          onClose={() => setSelectedTree(null)}
-        />
-      )}
-    </>
+    <group position={position}>
+      {treePositions.map((pos, index) => (
+        <group key={index}>
+          {createTree(pos, 0.8 + Math.random() * 0.4, `tree-${index}`)}
+        </group>
+      ))}
+    </group>
   )
 } 
