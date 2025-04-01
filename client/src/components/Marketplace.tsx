@@ -1,6 +1,6 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Mesh, Group } from 'three'
+import { Group, CanvasTexture } from 'three'
 import { useMarketplaceStore } from '../utils/marketplaceStore'
 import { CollisionSystem } from '../utils/collision'
 
@@ -13,6 +13,29 @@ export const Marketplace = ({ position }: MarketplaceProps) => {
   const { toggleMarketplace } = useMarketplaceStore()
   const collisionSystem = CollisionSystem.getInstance()
 
+  // Create text texture
+  const textTexture = useMemo(() => {
+    const canvas = document.createElement('canvas')
+    const context = canvas.getContext('2d')
+    if (!context) return null
+
+    canvas.width = 256
+    canvas.height = 64
+
+    // Fill background
+    context.fillStyle = '#8b4513'
+    context.fillRect(0, 0, canvas.width, canvas.height)
+
+    // Add text
+    context.fillStyle = '#ffffff'
+    context.font = 'bold 32px Arial'
+    context.textAlign = 'center'
+    context.textBaseline = 'middle'
+    context.fillText('Bike Market', canvas.width / 2, canvas.height / 2)
+
+    return new CanvasTexture(canvas)
+  }, [])
+
   useEffect(() => {
     if (groupRef.current) {
       collisionSystem.addCollidableObject('marketplace', groupRef.current)
@@ -23,9 +46,8 @@ export const Marketplace = ({ position }: MarketplaceProps) => {
     }
   }, [])
 
-  useFrame((state, delta) => {
+  useFrame(() => {
     if (groupRef.current) {
-      // Update collision bounds
       collisionSystem.updateObjectBounds('marketplace', groupRef.current)
     }
   })
@@ -69,6 +91,18 @@ export const Marketplace = ({ position }: MarketplaceProps) => {
           metalness={0.1}
         />
       </mesh>
+
+      {/* Sign */}
+      {textTexture && (
+        <mesh position={[0, 2.5, 0]} rotation={[0, Math.PI, 0]}>
+          <planeGeometry args={[3, 0.75]} />
+          <meshStandardMaterial 
+            map={textTexture}
+            transparent
+            opacity={0.9}
+          />
+        </mesh>
+      )}
     </group>
   )
 } 

@@ -6,7 +6,6 @@ import { Ground } from '../components/Ground'
 import { Marketplace } from '../components/Marketplace'
 import { Trees } from '../components/Trees'
 import { Buildings } from '../components/Buildings'
-import { CyclingPath } from '../components/CyclingPath'
 import { Mountains } from '../components/Mountains'
 
 export const World = () => {

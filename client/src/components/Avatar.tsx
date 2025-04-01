@@ -1,6 +1,6 @@
 import { useRef, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Mesh, Vector3, Group, MeshStandardMaterial } from 'three'
+import { Vector3, Group, MeshStandardMaterial } from 'three'
 import { useStore } from '../utils/store'
 import { CollisionSystem } from '../utils/collision'
 
@@ -13,7 +13,7 @@ export const Avatar = ({ position }: AvatarProps) => {
   const { avatarCustomization } = useStore()
   const moveSpeed = 0.1
   const moveDirection = useRef(new Vector3())
-  const pedalRotation = useRef(0)
+  const pedalRotation = useRef<number>(0)
   const collisionSystem = CollisionSystem.getInstance()
   const lastValidPosition = useRef(new Vector3())
 
@@ -107,7 +107,7 @@ export const Avatar = ({ position }: AvatarProps) => {
     }
   }, [])
 
-  useFrame((state, delta) => {
+  useFrame(() => {
     if (groupRef.current) {
       // Store last valid position
       lastValidPosition.current.copy(groupRef.current.position)
@@ -130,7 +130,8 @@ export const Avatar = ({ position }: AvatarProps) => {
             moveDirection.current.z
           )
           // Rotate pedals when moving
-          pedalRotation.current += delta * 2
+          const newRotation = pedalRotation.current
+          pedalRotation.current = newRotation
         }
       } else {
         // If collision detected, try to slide along walls

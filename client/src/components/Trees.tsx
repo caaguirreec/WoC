@@ -1,6 +1,6 @@
 import { useRef, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Mesh, Group, Box3 } from 'three'
+import {  Group, Box3 } from 'three'
 import { CollisionSystem } from '../utils/collision'
 
 interface TreesProps {
@@ -29,7 +29,7 @@ const createTree = (position: [number, number, number], size: number = 1, treeId
     }
   }, [])
 
-  useFrame((state, delta) => {
+  useFrame(() => {
     if (groupRef.current) {
       const box = new Box3().setFromObject(groupRef.current)
       box.min.y = 0

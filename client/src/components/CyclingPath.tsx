@@ -17,7 +17,7 @@ export const CyclingPath = () => {
   const curve = createPathCurve()
   const meshRef = useRef<Mesh>(null)
 
-  useFrame((state, delta) => {
+  useFrame(() => {
     if (meshRef.current) {
       // Add subtle animation or effects here if needed
     }

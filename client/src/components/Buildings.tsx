@@ -1,7 +1,3 @@
-import { useRef } from 'react'
-import { useFrame } from '@react-three/fiber'
-import { Mesh, Group } from 'three'
-
 interface BuildingProps {
   position: [number, number, number]
   scale?: [number, number, number]

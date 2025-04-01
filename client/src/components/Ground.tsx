@@ -5,7 +5,7 @@ import { Mesh } from 'three'
 export const Ground = () => {
   const meshRef = useRef<Mesh>(null)
 
-  useFrame((state, delta) => {
+  useFrame(() => {
     if (meshRef.current) {
       // Add subtle animation or effects here if needed
     }
